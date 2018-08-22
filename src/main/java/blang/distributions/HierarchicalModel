@@ -1,0 +1,22 @@
+package blang.validation.internals.fixtures
+
+model HierarchicalModel  {
+  param GlobalDataSource data
+  param Plate<String> rocketTypes
+  param Plated<IntVar> numberOfLaunches
+  random Plated<RealVar> failureProbabilities
+  random Plated<IntVar> numberOfFailures
+  random RealVar a ?: latentReal, b ?: latentReal
+
+  laws {
+    a ~ Exponential(1)
+    b ~ Exponential(1)
+    for (Index<String> rocketType : rocketTypes.indices) {
+      failureProbabilities.get(rocketType) | a, b ~ Beta(a, b)
+      numberOfFailures.get(rocketType)
+        | RealVar failureProbability = failureProbabilities.get(rocketType),
+          IntVar numberOfLaunch = numberOfLaunches.get(rocketType)
+        ~ Binomial(numberOfLaunch, failureProbability)
+    }
+  }
+}
